@@ -1,0 +1,123 @@
+//zbior.cpp
+#include "zbior.h"
+#include <new>
+#include <random>
+#include <iostream>
+
+void Zbior::alokuj(int n)
+{
+    if (n > 0)
+    {
+        m_elementy = new(std::nothrow) double[n];
+        m_liczbaElementow = n;
+    }
+}
+
+void Zbior::zwolnij()
+{
+    if (m_elementy != nullptr)
+    {
+        delete[] m_elementy;
+        m_elementy = nullptr;
+    }
+}
+
+Zbior::Zbior(size_t liczElem, double dGran, double gGran)
+{
+    alokuj(liczElem);
+    std::uniform_real_distribution<double> zakres(dGran, gGran);
+    std::random_device generator;
+    for (int elem = 0; elem < liczElem; elem++)
+        m_elementy[elem] = zakres(generator);
+}
+
+Zbior::Zbior(Zbior&& other) : m_elementy(other.m_elementy), m_liczbaElementow(other.m_liczbaElementow)
+{
+    other.m_elementy = nullptr;
+    other.m_liczbaElementow = 0;
+}
+
+Zbior& Zbior::operator=(Zbior&& other)
+{
+    if (this != &other)
+    {
+        delete[] m_elementy;
+        m_elementy = other.m_elementy;
+        m_liczbaElementow = other.m_liczbaElementow;
+        other.m_elementy = nullptr;
+        other.m_liczbaElementow = 0;
+    }
+    return *this;
+}
+
+int main()
+{
+    std::vector<double> lista = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+    std::vector<Zbior> wektorZbiorow;
+
+    for (auto& elem : lista)
+    {
+        wektorZbiorow.push_back(Zbior(100, 0, elem));
+    }
+
+    Zbior zbiorReferencyjny(100, 0, 5.0);
+    ZbiorFunctor funktor(zbiorReferencyjny);
+
+    auto it = std::find_if(wektorZbiorow.begin(), wektorZbiorow.end(), funktor);
+
+    if (it != wektorZbiorow.end())
+    {
+        std::cout << "Znaleziono zbior z srednia zbliżoną do zbioru referencyjnego.\n";
+    }
+    else
+    {
+        std::cout << "Nie znaleziono zbioru z srednia zbliżoną do zbioru referencyjnego.\n";
+    }
+
+    return 0;
+}
+//zbior.h
+#pragma once
+#include <vector>
+
+class Zbior
+{
+    size_t m_liczbaElementow = 0;
+    double* m_elementy = nullptr;
+    double m_dolnaGranica = 0;
+    double m_gornaGranica = 0;
+    void alokuj(int);
+    void zwolnij();
+public:
+    Zbior(size_t liczElem, double dGran, double gGran);
+    Zbior(const Zbior&) = delete;
+    Zbior& operator=(const Zbior&) = delete;
+    Zbior(Zbior&&);
+    Zbior& operator=(Zbior&&);
+    ~Zbior() { zwolnij(); }
+    double getGornaGranica() const { return m_gornaGranica; }
+    double srednia() const
+    {
+        double suma = 0.0;
+        for (size_t i = 0; i < m_liczbaElementow; ++i)
+        {
+            suma += m_elementy[i];
+        }
+        return suma / m_liczbaElementow;
+    }
+};
+
+class ZbiorFunctor
+{
+    const Zbior& zbior;
+    double tolerancja;
+public:
+    ZbiorFunctor(const Zbior& z, double t = 0.1) : zbior(z), tolerancja(t) {}
+
+    bool operator()(const Zbior& z) const
+    {
+        double srednia1 = zbior.srednia();
+        double srednia2 = z.srednia();
+        return std::abs(srednia1 - srednia2) <= tolerancja;
+    }
+};
