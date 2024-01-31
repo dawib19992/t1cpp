@@ -3,6 +3,7 @@
 #include <new>
 #include <random>
 #include <iostream>
+#include <algorithm>
 
 void Zbior::alokuj(int n)
 {
@@ -50,6 +51,12 @@ Zbior& Zbior::operator=(Zbior&& other)
     return *this;
 }
 
+// Mechanizm konwersji z typu double
+Zbior Zbior::fromDouble(double gGran)
+{
+    return Zbior(1, 0, gGran);
+}
+
 int main()
 {
     std::vector<double> lista = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
@@ -76,6 +83,7 @@ int main()
 
     return 0;
 }
+
 //zbior.h
 #pragma once
 #include <vector>
@@ -88,6 +96,7 @@ class Zbior
     double m_gornaGranica = 0;
     void alokuj(int);
     void zwolnij();
+
 public:
     Zbior(size_t liczElem, double dGran, double gGran);
     Zbior(const Zbior&) = delete;
@@ -95,6 +104,7 @@ public:
     Zbior(Zbior&&);
     Zbior& operator=(Zbior&&);
     ~Zbior() { zwolnij(); }
+
     double getGornaGranica() const { return m_gornaGranica; }
     double srednia() const
     {
@@ -105,12 +115,15 @@ public:
         }
         return suma / m_liczbaElementow;
     }
+
+    static Zbior fromDouble(double gGran);
 };
 
 class ZbiorFunctor
 {
     const Zbior& zbior;
     double tolerancja;
+
 public:
     ZbiorFunctor(const Zbior& z, double t = 0.1) : zbior(z), tolerancja(t) {}
 
