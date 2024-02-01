@@ -576,5 +576,7 @@ int main()
     return 0;
 }
 
+Ważność	Kod	Opis	Projekt	Plik	Wiersz	Stan pominięcia
+Błąd (aktywny)	E0289	żadne wystąpienie konstruktora "Zbior::ZbiorFunctor::ZbiorFunctor" nie jest zgodne z listą argumentów	Project1	C:\Users\student\Desktop\kolt1dk\Project1\zbior.cpp	145	
 
 
