@@ -229,3 +229,37 @@ QString SoldierDialog::getRank() const
 {
     return rankComboBox->currentText();
 }
+
+void MainWindow::addSoldier()
+{
+    SoldierDialog dialog(this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QString name = dialog.getName();
+        int age = dialog.getAge();
+        QString rank = dialog.getRank();
+
+        if (age <= 18) {
+            QMessageBox::critical(this, "Error", "Soldier must be at least 18 years old.");
+            return;
+        }
+
+        // Add soldier to the list
+        QString soldierInfo = name + ", " + rank + ", " + QString::number(age);
+        QListWidgetItem *newSoldier = new QListWidgetItem(soldierInfo);
+        soldierList->addItem(newSoldier);
+
+        // Sort the list by age (oldest first)
+        for (int i = 0; i < soldierList->count() - 1; ++i) {
+            for (int j = i + 1; j < soldierList->count(); ++j) {
+                QStringList soldier1 = soldierList->item(i)->text().split(", ");
+                QStringList soldier2 = soldierList->item(j)->text().split(", ");
+                if (soldier1[2].toInt() < soldier2[2].toInt()) {
+                    soldierList->insertItem(i, soldierList->takeItem(j));
+                }
+            }
+        }
+    }
+}
+
+
