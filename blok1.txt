@@ -263,3 +263,162 @@ void MainWindow::addSoldier()
 }
 
 
+
+zad1
+// zbior.h
+#pragma once
+
+class Zbior
+{
+    size_t m_liczbaElementow = 0;
+    double* m_elementy = nullptr;
+    double m_dolnaGranica = 0;
+    double m_gornaGranica = 0;
+
+    void alokuj(int);
+    void zwolnij();
+    void kopiuj(const Zbior& other);
+
+public:
+    Zbior(size_t liczElem, double dGran, double gGran);
+    Zbior(const Zbior& other);
+    Zbior(Zbior&& other) noexcept;
+    Zbior& operator=(const Zbior& other);
+    Zbior& operator=(Zbior&& other) noexcept;
+    ~Zbior();
+
+    // Inne metody klasy...
+};
+
+// zbior.cpp
+#include "zbior.h"
+#include <new>
+#include <algorithm>
+
+// ... (pozostała część klasy)
+
+// Konstruktor kopiujący
+Zbior::Zbior(const Zbior& other)
+{
+    kopiuj(other);
+}
+
+// Konstruktor przenoszący
+Zbior::Zbior(Zbior&& other) noexcept
+    : m_liczbaElementow(other.m_liczbaElementow),
+      m_elementy(other.m_elementy),
+      m_dolnaGranica(other.m_dolnaGranica),
+      m_gornaGranica(other.m_gornaGranica)
+{
+    other.m_liczbaElementow = 0;
+    other.m_elementy = nullptr;
+    other.m_dolnaGranica = 0;
+    other.m_gornaGranica = 0;
+}
+
+// Operator przypisania kopiujący
+Zbior& Zbior::operator=(const Zbior& other)
+{
+    if (this != &other)
+    {
+        zwolnij();
+        kopiuj(other);
+    }
+    return *this;
+}
+
+// Operator przypisania przenoszący
+Zbior& Zbior::operator=(Zbior&& other) noexcept
+{
+    if (this != &other)
+    {
+        zwolnij();
+        m_liczbaElementow = other.m_liczbaElementow;
+        m_elementy = other.m_elementy;
+        m_dolnaGranica = other.m_dolnaGranica;
+        m_gornaGranica = other.m_gornaGranica;
+
+        other.m_liczbaElementow = 0;
+        other.m_elementy = nullptr;
+        other.m_dolnaGranica = 0;
+        other.m_gornaGranica = 0;
+    }
+    return *this;
+}
+
+// Inne metody klasy...
+
+// zbior.h
+#pragma once
+
+#include <vector>
+
+class Zbior
+{
+    // ... (reszta klasy)
+
+public:
+    // Inne metody klasy...
+
+    operator double() const;
+    double mediana() const;
+};
+
+// zbior.cpp
+#include "zbior.h"
+#include <algorithm>
+
+// ... (pozostała część klasy)
+
+// Konwersja do typu double
+Zbior::operator double() const
+{
+    double suma = 0.0;
+    for (size_t i = 0; i < m_liczbaElementow; ++i)
+    {
+        suma += m_elementy[i];
+    }
+    return suma / m_liczbaElementow;
+}
+
+// Obliczanie mediany
+double Zbior::mediana() const
+{
+    if (m_liczbaElementow == 0)
+        return 0.0;
+
+    std::vector<double> kopija(m_elementy, m_elementy + m_liczbaElementow);
+    std::sort(kopija.begin(), kopija.end());
+
+    if (m_liczbaElementow % 2 == 0)
+    {
+        size_t srodek1 = m_liczbaElementow / 2 - 1;
+        size_t srodek2 = m_liczbaElementow / 2;
+        return (kopija[srodek1] + kopija[srodek2]) / 2.0;
+    }
+    else
+    {
+        size_t srodek = m_liczbaElementow / 2;
+        return kopija[srodek];
+    }
+}
+
+#include "zbior.h"
+#include <vector>
+#include <iostream>
+
+int main()
+{
+    std::vector<double> wektor;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> rozklad(1.0, 10.0);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        Zbior zbior(5, 1.0, 10.0);
+        wektor.push_back(static_cast<double>(zbior));
+    }
+
+
+
