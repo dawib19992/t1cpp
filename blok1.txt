@@ -1,136 +1,231 @@
-//zbior.cpp
-#include "zbior.h"
-#include <new>
-#include <random>
-#include <iostream>
-#include <algorithm>
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-void Zbior::alokuj(int n)
+#include <QMainWindow>
+#include <QListWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QComboBox>
+#include "soldierdialog.h"
+
+class MainWindow : public QMainWindow
 {
-    if (n > 0)
-    {
-        m_elementy = new(std::nothrow) double[n];
-        m_liczbaElementow = n;
-    }
-}
-
-void Zbior::zwolnij()
-{
-    if (m_elementy != nullptr)
-    {
-        delete[] m_elementy;
-        m_elementy = nullptr;
-    }
-}
-
-Zbior::Zbior(size_t liczElem, double dGran, double gGran)
-{
-    alokuj(liczElem);
-    std::uniform_real_distribution<double> zakres(dGran, gGran);
-    std::random_device generator;
-    for (int elem = 0; elem < liczElem; elem++)
-        m_elementy[elem] = zakres(generator);
-}
-
-Zbior::Zbior(Zbior&& other) : m_elementy(other.m_elementy), m_liczbaElementow(other.m_liczbaElementow)
-{
-    other.m_elementy = nullptr;
-    other.m_liczbaElementow = 0;
-}
-
-Zbior& Zbior::operator=(Zbior&& other)
-{
-    if (this != &other)
-    {
-        delete[] m_elementy;
-        m_elementy = other.m_elementy;
-        m_liczbaElementow = other.m_liczbaElementow;
-        other.m_elementy = nullptr;
-        other.m_liczbaElementow = 0;
-    }
-    return *this;
-}
-
-// Mechanizm konwersji z typu double
-Zbior Zbior::fromDouble(double gGran)
-{
-    return Zbior(1, 0, gGran);
-}
-
-int main()
-{
-    std::vector<double> lista = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
-    std::vector<Zbior> wektorZbiorow;
-
-    for (auto& elem : lista)
-    {
-        wektorZbiorow.push_back(Zbior(100, 0, elem));
-    }
-
-    Zbior zbiorReferencyjny(100, 0, 5.0);
-    ZbiorFunctor funktor(zbiorReferencyjny);
-
-    auto it = std::find_if(wektorZbiorow.begin(), wektorZbiorow.end(), funktor);
-
-    if (it != wektorZbiorow.end())
-    {
-        std::cout << "Znaleziono zbior z srednia zbliżoną do zbioru referencyjnego.\n";
-    }
-    else
-    {
-        std::cout << "Nie znaleziono zbioru z srednia zbliżoną do zbioru referencyjnego.\n";
-    }
-
-    return 0;
-}
-
-//zbior.h
-#pragma once
-#include <vector>
-
-class Zbior
-{
-    size_t m_liczbaElementow = 0;
-    double* m_elementy = nullptr;
-    double m_dolnaGranica = 0;
-    double m_gornaGranica = 0;
-    void alokuj(int);
-    void zwolnij();
+    Q_OBJECT
 
 public:
-    Zbior(size_t liczElem, double dGran, double gGran);
-    Zbior(const Zbior&) = delete;
-    Zbior& operator=(const Zbior&) = delete;
-    Zbior(Zbior&&);
-    Zbior& operator=(Zbior&&);
-    ~Zbior() { zwolnij(); }
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
-    double getGornaGranica() const { return m_gornaGranica; }
-    double srednia() const
-    {
-        double suma = 0.0;
-        for (size_t i = 0; i < m_liczbaElementow; ++i)
-        {
-            suma += m_elementy[i];
+private slots:
+    void addSoldier();
+    void showOldestByRank();
+
+private:
+    QListWidget *soldierList;
+    QLabel *companyLogo;
+    QPushButton *addSoldierButton;
+    QPushButton *oldestByRankButton;
+    QComboBox *rankComboBox;
+
+    void setupUI();
+};
+
+#endif // MAINWINDOW_H
+
+#include "mainwindow.h"
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QPixmap>
+#include <QDir>
+#include <QMessageBox>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    setupUI();
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::setupUI()
+{
+    soldierList = new QListWidget(this);
+    companyLogo = new QLabel(this);
+    addSoldierButton = new QPushButton("Add Soldier", this);
+    oldestByRankButton = new QPushButton("Oldest by Rank", this);
+    rankComboBox = new QComboBox(this);
+    rankComboBox->addItem("Private");
+    rankComboBox->addItem("Sergeant");
+    rankComboBox->addItem("Captain");
+
+    // Load company logo
+    QString imagePath = QDir::currentPath() + "/company_logo.png";
+    QPixmap logo(imagePath);
+    companyLogo->setPixmap(logo.scaled(150, 150));
+
+    QHBoxLayout *mainLayout = new QHBoxLayout;
+    QVBoxLayout *buttonLayout = new QVBoxLayout;
+    buttonLayout->addWidget(addSoldierButton);
+    buttonLayout->addWidget(oldestByRankButton);
+    buttonLayout->addWidget(rankComboBox);
+    mainLayout->addWidget(soldierList);
+    mainLayout->addWidget(companyLogo);
+    mainLayout->addLayout(buttonLayout);
+
+    QWidget *centralWidget = new QWidget(this);
+    centralWidget->setLayout(mainLayout);
+    setCentralWidget(centralWidget);
+
+    connect(addSoldierButton, SIGNAL(clicked()), this, SLOT(addSoldier()));
+    connect(oldestByRankButton, SIGNAL(clicked()), this, SLOT(showOldestByRank()));
+}
+
+void MainWindow::addSoldier()
+{
+    SoldierDialog dialog(this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QString name = dialog.getName();
+        int age = dialog.getAge();
+        QString rank = dialog.getRank();
+
+        if (age <= 18) {
+            QMessageBox::critical(this, "Error", "Soldier must be at least 18 years old.");
+            return;
         }
-        return suma / m_liczbaElementow;
+
+        // Add soldier to the list
+        QString soldierInfo = name + ", " + rank + ", " + QString::number(age);
+        soldierList->addItem(soldierInfo);
+
+        // Sort the list by age (oldest first)
+        for (int i = 0; i < soldierList->count() - 1; ++i) {
+            for (int j = i + 1; j < soldierList->count(); ++j) {
+                QStringList soldier1 = soldierList->item(i)->text().split(", ");
+                QStringList soldier2 = soldierList->item(j)->text().split(", ");
+                if (soldier1[2].toInt() < soldier2[2].toInt()) {
+                    soldierList->swapItems(i, j);
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::showOldestByRank()
+{
+    QString selectedRank = rankComboBox->currentText();
+    int index = -1;
+
+    // Find the oldest soldier of the selected rank
+    for (int i = 0; i < soldierList->count(); ++i) {
+        QStringList soldierInfo = soldierList->item(i)->text().split(", ");
+        if (soldierInfo[1] == selectedRank) {
+            if (index == -1 || soldierInfo[2].toInt() > soldierList->item(index)->text().split(", ")[2].toInt()) {
+                index = i;
+            }
+        }
     }
 
-    static Zbior fromDouble(double gGran);
-};
+    if (index != -1) {
+        QMessageBox::information(this, "Oldest Soldier by Rank", soldierList->item(index)->text());
+    } else {
+        QMessageBox::information(this, "Oldest Soldier by Rank", "No soldier of selected rank found.");
+    }
+}
 
-class ZbiorFunctor
+#ifndef SOLDIERDIALOG_H
+#define SOLDIERDIALOG_H
+
+#include <QDialog>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QComboBox>
+#include <QPushButton>
+
+class SoldierDialog : public QDialog
 {
-    const Zbior& zbior;
-    double tolerancja;
+    Q_OBJECT
 
 public:
-    ZbiorFunctor(const Zbior& z, double t = 0.1) : zbior(z), tolerancja(t) {}
+    SoldierDialog(QWidget *parent = nullptr);
+    ~SoldierDialog();
 
-    bool operator()(const Zbior& z) const
-    {
-        double srednia1 = zbior.srednia();
-        double srednia2 = z.srednia();
-        return std::abs(srednia1 - srednia2) <= tolerancja;
-    }
+    QString getName() const;
+    int getAge() const;
+    QString getRank() const;
+
+private:
+    QLineEdit *nameLineEdit;
+    QSpinBox *ageSpinBox;
+    QComboBox *rankComboBox;
+    QPushButton *okButton;
+    QPushButton *cancelButton;
+
+    void setupUI();
 };
+
+#endif // SOLDIERDIALOG
+
+#include "soldierdialog.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+
+SoldierDialog::SoldierDialog(QWidget *parent)
+    : QDialog(parent)
+{
+    setupUI();
+}
+
+SoldierDialog::~SoldierDialog()
+{
+}
+
+void SoldierDialog::setupUI()
+{
+    nameLineEdit = new QLineEdit(this);
+    ageSpinBox = new QSpinBox(this);
+    rankComboBox = new QComboBox(this);
+    okButton = new QPushButton("OK", this);
+    cancelButton = new QPushButton("Cancel", this);
+
+    ageSpinBox->setMinimum(18);
+    rankComboBox->addItem("Private");
+    rankComboBox->addItem("Sergeant");
+    rankComboBox->addItem("Captain");
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(new QLabel("Name:", this));
+    mainLayout->addWidget(nameLineEdit);
+    mainLayout->addWidget(new QLabel("Age:", this));
+    mainLayout->addWidget(ageSpinBox);
+    mainLayout->addWidget(new QLabel("Rank:", this));
+    mainLayout->addWidget(rankComboBox);
+
+    QHBoxLayout *buttonLayout = new QHBoxLayout;
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+
+    mainLayout->addLayout(buttonLayout);
+
+    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+
+    setLayout(mainLayout);
+}
+
+QString SoldierDialog::getName() const
+{
+    return nameLineEdit->text();
+}
+
+int SoldierDialog::getAge() const
+{
+    return ageSpinBox->value();
+}
+
+QString SoldierDialog::getRank() const
+{
+    return rankComboBox->currentText();
+}
