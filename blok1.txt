@@ -580,3 +580,192 @@ Ważność	Kod	Opis	Projekt	Plik	Wiersz	Stan pominięcia
 Błąd (aktywny)	E0289	żadne wystąpienie konstruktora "Zbior::ZbiorFunctor::ZbiorFunctor" nie jest zgodne z listą argumentów	Project1	C:\Users\student\Desktop\kolt1dk\Project1\zbior.cpp	145	
 
 
+// zbior.h
+#pragma once
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+class Zbior
+{
+    size_t m_liczbaElementow = 0;
+    double* m_elementy = nullptr;
+    double m_dolnaGranica = 0;
+    double m_gornaGranica = 0;
+    void alokuj(int);
+    void zwolnij();
+
+public:
+    Zbior(size_t liczElem, double dGran, double gGran);
+    Zbior(const Zbior& other);
+    Zbior(Zbior&& other) noexcept;
+    Zbior& operator=(const Zbior& other);
+    Zbior& operator=(Zbior&& other) noexcept;
+    ~Zbior();
+
+    operator double() const;
+
+    // Dodatkowe metody, takie jak obliczanie mediany, mogą być dodane tu.
+
+    friend class RoznyOdElementow;
+};
+
+class RoznyOdElementow
+{
+public:
+    RoznyOdElementow(const std::vector<double>& elements, double tolerance = 1e-3)
+        : m_elements(elements), m_tolerance(tolerance) {}
+
+    bool operator()(double value) const
+    {
+        for (double element : m_elements)
+        {
+            if (std::abs(value - element) < m_tolerance)
+                return false;
+        }
+        return true;
+    }
+
+private:
+    std::vector<double> m_elements;
+    double m_tolerance;
+};
+
+// zbior.cpp
+#include "zbior.h"
+#include <new>
+#include <random>
+
+void Zbior::alokuj(int n)
+{
+    if (n > 0)
+    {
+        m_elementy = new(std::nothrow) double[n];
+        m_liczbaElementow = n;
+    }
+}
+
+void Zbior::zwolnij()
+{
+    if (m_elementy != nullptr)
+    {
+        delete[] m_elementy;
+        m_elementy = nullptr;
+    }
+}
+
+Zbior::Zbior(size_t liczElem, double dGran, double gGran)
+{
+    alokuj(liczElem);
+    std::uniform_real_distribution<double> zakres(dGran, gGran);
+    std::random_device generator;
+    for (int elem = 0; elem < liczElem; elem++)
+        m_elementy[elem] = zakres(generator);
+}
+
+Zbior::Zbior(const Zbior& other)
+{
+    alokuj(other.m_liczbaElementow);
+    std::copy(other.m_elementy, other.m_elementy + m_liczbaElementow, m_elementy);
+    m_dolnaGranica = other.m_dolnaGranica;
+    m_gornaGranica = other.m_gornaGranica;
+}
+
+Zbior::Zbior(Zbior&& other) noexcept
+{
+    m_liczbaElementow = other.m_liczbaElementow;
+    m_elementy = other.m_elementy;
+    m_dolnaGranica = other.m_dolnaGranica;
+    m_gornaGranica = other.m_gornaGranica;
+
+    other.m_liczbaElementow = 0;
+    other.m_elementy = nullptr;
+    other.m_dolnaGranica = 0;
+    other.m_gornaGranica = 0;
+}
+
+Zbior& Zbior::operator=(const Zbior& other)
+{
+    if (this != &other)
+    {
+        zwolnij();
+        alokuj(other.m_liczbaElementow);
+        std::copy(other.m_elementy, other.m_elementy + m_liczbaElementow, m_elementy);
+        m_dolnaGranica = other.m_dolnaGranica;
+        m_gornaGranica = other.m_gornaGranica;
+    }
+    return *this;
+}
+
+Zbior& Zbior::operator=(Zbior&& other) noexcept
+{
+    if (this != &other)
+    {
+        zwolnij();
+        m_liczbaElementow = other.m_liczbaElementow;
+        m_elementy = other.m_elementy;
+        m_dolnaGranica = other.m_dolnaGranica;
+        m_gornaGranica = other.m_gornaGranica;
+
+        other.m_liczbaElementow = 0;
+        other.m_elementy = nullptr;
+        other.m_dolnaGranica = 0;
+        other.m_gornaGranica = 0;
+    }
+    return *this;
+}
+
+Zbior::~Zbior()
+{
+    zwolnij();
+}
+
+Zbior::operator double() const
+{
+    std::vector<double> tempVec(m_elementy, m_elementy + m_liczbaElementow);
+    std::sort(tempVec.begin(), tempVec.end());
+    size_t middle = m_liczbaElementow / 2;
+    return (m_liczbaElementow % 2 == 0) ? (tempVec[middle - 1] + tempVec[middle]) / 2.0 : tempVec[middle];
+}
+
+int main()
+{
+    std::vector<Zbior> zbiorVector;
+
+    std::random_device generator;
+    std::uniform_int_distribution<int> liczbaElementowDist(5, 10);
+    std::uniform_real_distribution<double> granicaDist(1.0, 10.0);
+
+    for (int i = 0; i < 5; ++i)
+    {
+        int liczbaElementow = liczbaElementowDist(generator);
+        double dolnaGranica = granicaDist(generator);
+        double gornaGranica = granicaDist(generator);
+
+        Zbior nowyZbior(liczbaElementow, dolnaGranica, gornaGranica);
+        zbiorVector.push_back(nowyZbior);
+    }
+
+    // Wyświetlenie mediany dla każdego zbioru w wektorze
+    for (const auto& zbior : zbiorVector)
+    {
+        double median = static_cast<double>(zbior);
+        std::cout << "Mediana zbioru: " << median << std::endl;
+    }
+
+    // Demonstracja funktora
+    std::vector<double> innaKolekcja = {1.5, 2.0, 3.2, 4.8, 5.5};
+    RoznyOdElementow roznyOdInnych(innaKolekcja);
+    double testValue = 3.0;
+
+    if (roznyOdInnych(testValue))
+    {
+        std::cout << testValue << " jest różne od elementów w innej kolekcji." << std::endl;
+    }
+    else
+    {
+        std::cout << testValue << " jest istotnie równe przynajmniej jednemu elementowi w innej kolekcji." << std::endl;
+    }
+
+    return 0;
+}
