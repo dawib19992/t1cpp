@@ -498,6 +498,83 @@ int main()
     return 0;
 }
 
+// zbior.h
+#include <cmath>
+#include <algorithm>
+
+class Zbior
+{
+    // ... (reszta klasy)
+
+public:
+    // Inne metody klasy...
+
+    class ZbiorFunctor
+    {
+        const std::vector<double>& wektor;
+        double tolerancja;
+
+    public:
+        ZbiorFunctor(const std::vector<double>& w, double t = 1e-3) : wektor(w), tolerancja(t) {}
+
+        bool operator()(double arg) const
+        {
+            return std::none_of(wektor.begin(), wektor.end(), [=](double elem) {
+                return std::abs(arg - elem) <= tolerancja;
+            });
+        }
+    };
+};
+
+
+// zbior.cpp
+#include "zbior.h"
+#include <iostream>
+#include <algorithm>
+
+// ... (pozostała część klasy)
+
+// W definicji klasy Zbior:
+
+double Zbior::mediana() const
+{
+    // ... (poprzednia implementacja)
+}
+
+// Implementacja main dla punktu 3:
+
+int main()
+{
+    std::vector<double> wektor;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> rozklad(1.0, 10.0);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        Zbior zbior(5, 1.0, 10.0);
+        wektor.push_back(static_cast<double>(zbior));
+    }
+
+    // Implementacja funktora:
+
+    Zbior::ZbiorFunctor funktor(wektor);
+
+    // Przykład użycia funktora z funkcją z biblioteki <algorithm>:
+
+    auto it = std::find_if_not(wektor.begin(), wektor.end(), funktor);
+
+    if (it != wektor.end())
+    {
+        std::cout << "Znaleziono element istotnie różny od zbioru.\n";
+    }
+    else
+    {
+        std::cout << "Nie znaleziono elementu istotnie różnego od zbioru.\n";
+    }
+
+    return 0;
+}
 
 
 
