@@ -27,44 +27,39 @@ void MainWindow::calculateTotal()
 void MainWindow::addClient()
 {
     SecDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString name = dialog.getFirstName();
-        QString address = dialog.getAdress();
+    if (dialog.exec() == QDialog::Accepted);
+        QString name;
+        QString address;
         double discount;
         double wartosc;
-        if(dialog.getAmount() < 0)
+        if(dialog.getFirstName() == nullptr || dialog.getAdress() == nullptr || dialog.getAmount() <= 0 || dialog.getDiscount() < 0)
         {
-            wartosc = 0;
+            QMessageBox::critical(this, "Error", "Wprowadź poprawne wartości");
         }
         else
         {
-           wartosc = dialog.getAmount();
+            name = dialog.getFirstName();
+            address = dialog.getAdress();
+            wartosc = dialog.getAmount();
+            discount = dialog.getDiscount();
+            porabacie = wartosc - (wartosc*(discount/100));
+            QString zamowienie = QString::number(porabacie) + "PLN";
+            QString customerInfo = address + " | " + name + "(" + QString::number(porabacie) + "PLN)";
+            QListWidgetItem *newItem = new QListWidgetItem(customerInfo);
+            newItem->setData(Qt::UserRole, QVariant(porabacie));
+            ui->listaklientow->addItem(newItem);
+            sortClientsList();
         }
-        if(dialog.getDiscount() < 0)
-        {
-           discount = 0;
-        }
-        else
-        {
-           discount = dialog.getDiscount();
-        }
-        porabacie = wartosc - (wartosc*(discount/100));
-        QString customerInfo = QString("%1, %2, %3").arg(address, name, QString::number(porabacie));
-        QListWidgetItem *newItem = new QListWidgetItem(customerInfo);
-        newItem->setData(Qt::UserRole, QVariant(porabacie));
-        ui->listaklientow->addItem(newItem);
-        sortClientsList();
-    }
-}
 
+}
 void MainWindow::sortClientsList()
 {
     for(int i = 0; i < ui->listaklientow->count(); i++)
     {
        for (int j = 0; j < ui->listaklientow->count(); j++)
        {
-            QStringList klient1 = ui->listaklientow->item(i)->text().split(", ");
-            QStringList klient2 = ui->listaklientow->item(j)->text().split(", ");
+            QStringList klient1 = ui->listaklientow->item(i)->text().split(" | ");
+            QStringList klient2 = ui->listaklientow->item(j)->text().split(" | ");
             if(klient1[2].toDouble() > klient2[2].toDouble())
             {
                 ui->listaklientow->insertItem(i, ui->listaklientow->takeItem(j));
@@ -72,7 +67,6 @@ void MainWindow::sortClientsList()
        }
     }
 }
-
 void MainWindow::on_dodaj_clicked()
 {
     addClient();
