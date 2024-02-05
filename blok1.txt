@@ -870,5 +870,67 @@ AddCandidateDialog::~AddCandidateDialog()
 {
     // Destructor
 }
+
+
+
+
+
+// mainwindow.cpp
+
+#include "mainwindow.h"
+#include "addcandidatedialog.h"
+#include <algorithm> // for std::sort
+#include <QDebug>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    // Initialize UI components and layout (Logo, Threshold, Candidates List, Buttons, etc.)
+    // ...
+
+    connect(setThresholdButton, &QPushButton::clicked, this, &MainWindow::updateThreshold);
+    connect(addCandidateButton, &QPushButton::clicked, this, &MainWindow::addCandidate);
+}
+
+// Other member functions...
+
+void MainWindow::showAcceptedCandidates()
+{
+    // Retrieve the current threshold
+    int admissionThreshold = thresholdLineEdit->text().toInt();
+
+    // Iterate through candidates, highlight accepted ones
+    for (int i = 0; i < candidatesListWidget->count(); ++i) {
+        QListWidgetItem* item = candidatesListWidget->item(i);
+        QStringList candidateInfo = item->text().split(' ');
+
+        if (candidateInfo.size() == 3) {
+            int score = candidateInfo[2].toInt();
+            if (score >= admissionThreshold) {
+                item->setBackgroundColor(Qt::green); // Highlight accepted candidates
+            } else {
+                item->setBackgroundColor(Qt::white); // Reset background color for non-accepted candidates
+            }
+        }
+    }
+}
+
+void MainWindow::addCandidate()
+{
+    AddCandidateDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString name = dialog.getName();
+        int score = dialog.getScore();
+
+        // Add new candidate to the list
+        candidatesListWidget->addItem(QString("%1 %2 %3").arg(name).arg(score));
+
+        // Sort candidates based on score in descending order
+        candidatesListWidget->sortItems(Qt::DescendingOrder);
+
+        // Update threshold based on the median score
+        updateThreshold();
+    }
+}
 #endif // ADDCANDIDATEDIALOG_H
 // Now, 'zbiorFromList' is a Zbior with elements from the list and sensible boundaries.
