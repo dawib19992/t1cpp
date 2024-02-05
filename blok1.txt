@@ -769,3 +769,42 @@ int main()
 
     return 0;
 }
+#include "zbior.h"
+#include <vector>
+#include <algorithm> // for std::sort
+
+// In Zbior class, add the following public member function
+std::vector<double> Zbior::toSortedVector() const {
+    std::vector<double> sortedVector(m_elementy, m_elementy + m_liczbaElementow);
+    std::sort(sortedVector.begin(), sortedVector.end());
+    return sortedVector;
+}
+
+// In your main program or wherever you're using Zbior:
+Zbior zbior(liczElem, dGran, gGran);
+std::vector<double> sortedVector = zbior.toSortedVector();
+// Now, 'sortedVector' contains the sorted elements of Zbior
+
+#include "zbior.h"
+#include <list>
+
+// Assume Zbior has a constructor with a list parameter
+Zbior::Zbior(const std::list<double>& lista) {
+    m_liczbaElementow = lista.size();
+    alokuj(m_liczbaElementow);
+
+    auto it = lista.begin();
+    for (size_t elem = 0; elem < m_liczbaElementow; ++elem) {
+        m_elementy[elem] = *it;
+        ++it;
+    }
+
+    // Set sensible boundaries for the new Zbior
+    m_dolnaGranica = *std::min_element(lista.begin(), lista.end());
+    m_gornaGranica = *std::max_element(lista.begin(), lista.end());
+}
+
+// In your main program or wherever you're using std::list<double>:
+std::list<double> myList = { /* your list of doubles */ };
+Zbior zbiorFromList(myList);
+// Now, 'zbiorFromList' is a Zbior with elements from the list and sensible boundaries.
