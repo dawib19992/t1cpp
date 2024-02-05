@@ -807,4 +807,27 @@ Zbior::Zbior(const std::list<double>& lista) {
 // In your main program or wherever you're using std::list<double>:
 std::list<double> myList = { /* your list of doubles */ };
 Zbior zbiorFromList(myList);
+
+		#include "zbior.h"
+#include <vector>
+
+int main() {
+    // Define the parameters for the Zbior instance
+    size_t liczElem = 5; // Choose a sensible length
+    double dGran = 1.0;  // Choose a sensible lower bound
+    double gGran = 10.0; // Choose a sensible upper bound
+
+    // Create an instance of the Zbior class
+    Zbior zbior(liczElem, dGran, gGran);
+
+    // Convert Zbior to vector
+    std::vector<double> myVector(zbior.begin(), zbior.end());
+
+    // Now, 'myVector' contains the elements of Zbior
+    // Do whatever operations you need with the vector
+
+    return 0;
+}
+
+
 // Now, 'zbiorFromList' is a Zbior with elements from the list and sensible boundaries.
