@@ -261,3 +261,5 @@ int main()
 	
 }
 
+dodajkandydata.obj:-1: błąd: LNK2019: nierozpoznany symbol zewn©trzny "public: virtual __cdecl dodajKandydata::~dodajKandydata(void)" (??1dodajKandydata@@UEAA@XZ) przywoany w funkcji "public: virtual void * __cdecl dodajKandydata::`scalar deleting destructor'(unsigned int)" (??_GdodajKandydata@@UEAAPEAXI@Z)
+
