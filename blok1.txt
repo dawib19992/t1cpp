@@ -933,4 +933,60 @@ void MainWindow::addCandidate()
     }
 }
 #endif // ADDCANDIDATEDIALOG_H
+
+
+
+// mainwindow.cpp
+
+#include "mainwindow.h"
+#include "candidateentrywindow.h"
+
+// ... Reszta kodu MainWindow
+
+void MainWindow::sortCandidatesList() {
+    // Implementacja sortowania listy kandydatów względem wyniku punktowego
+    // Użyj QSortFilterProxyModel lub sortItems dla QListWidget
+    // ...
+
+    // Przykład dla QListWidget:
+    candidatesList->sortItems(Qt::DescendingOrder);
+}
+
+void MainWindow::updateThresholdLabel() {
+    // Implementacja aktualizacji etykiety z wartością mediany
+    // Użyj QSortFilterProxyModel lub oblicz medianę na podstawie aktualnej listy
+    // ...
+
+    // Przykład dla QListWidget:
+    int medianIndex = candidatesList->count() / 2;
+    QListWidgetItem *medianItem = candidatesList->item(medianIndex);
+    int medianValue = medianItem->data(Qt::UserRole).toInt(); // Zakładam, że wynik jest przechowywany w UserRole
+    thresholdLineEdit->setText(QString::number(medianValue));
+}
+
+void MainWindow::updateThreshold() {
+    // Implementacja aktualizacji progu przyjęć na podstawie mediany
+    updateThresholdLabel();
+}
+
+void MainWindow::showAdmittedCandidates() {
+    // Implementacja wyróżniania kandydatów przyjętych na studia
+    // Przypisz odpowiednie style lub kolory dla wierszy z przyjętymi kandydatami
+    // ...
+
+    // Przykład dla QListWidget:
+    for (int i = 0; i < candidatesList->count(); ++i) {
+        QListWidgetItem *item = candidatesList->item(i);
+        int candidateScore = item->data(Qt::UserRole).toInt(); // Zakładam, że wynik jest przechowywany w UserRole
+
+        if (candidateScore >= thresholdLineEdit->text().toInt()) {
+            item->setBackgroundColor(Qt::green);
+        } else {
+            item->setBackgroundColor(Qt::white);
+        }
+    }
+}
+
+
+
 // Now, 'zbiorFromList' is a Zbior with elements from the list and sensible boundaries.
