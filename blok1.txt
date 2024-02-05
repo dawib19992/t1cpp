@@ -829,5 +829,46 @@ int main() {
     return 0;
 }
 
+// addcandidatedialog.h
+#ifndef ADDCANDIDATEDIALOG_H
+#define ADDCANDIDATEDIALOG_H
 
+#include <QDialog>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QPushButton>
+
+class AddCandidateDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    AddCandidateDialog(QWidget *parent = nullptr);
+    ~AddCandidateDialog();
+
+private:
+    QLineEdit* nameLineEdit;
+    QSpinBox* scoreSpinBox;
+    QPushButton* okButton;
+    QPushButton* cancelButton;
+};
+// addcandidatedialog.cpp
+#include "addcandidatedialog.h"
+#include <QFormLayout>
+
+AddCandidateDialog::AddCandidateDialog(QWidget *parent)
+    : QDialog(parent)
+{
+    // Initialize UI components and layout
+    // ...
+
+    connect(okButton, &QPushButton::clicked, this, &AddCandidateDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, this, &AddCandidateDialog::reject);
+}
+
+AddCandidateDialog::~AddCandidateDialog()
+{
+    // Destructor
+}
+#endif // ADDCANDIDATEDIALOG_H
 // Now, 'zbiorFromList' is a Zbior with elements from the list and sensible boundaries.
